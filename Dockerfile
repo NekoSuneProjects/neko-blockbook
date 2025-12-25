@@ -12,5 +12,5 @@ COPY package.json ./
 RUN npm install --include=dev
 COPY . .
 RUN npm run build
-EXPOSE 8080 26210 26211 51472 51473 22555 22556
+EXPOSE 4200 26210 26211 51472 51473 22555 22556
 CMD ["node", "dist/index.js"]
