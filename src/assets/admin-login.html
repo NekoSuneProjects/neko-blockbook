@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Neko Blockbook - Admin Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0f19;
+        --card: rgba(17, 23, 39, 0.85);
+        --accent: #ffd166;
+        --text: #f8f4e9;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at top left, #2f4858 0%, #0b0f19 60%);
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        color: var(--text);
+      }
+      .card {
+        width: min(420px, 90vw);
+        background: var(--card);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 28px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 1.8rem;
+      }
+      label {
+        display: block;
+        margin: 16px 0 8px;
+        color: rgba(248, 244, 233, 0.7);
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      input {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(7, 10, 18, 0.7);
+        color: var(--text);
+      }
+      button {
+        margin-top: 20px;
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #8ee3c8, #4b8fbb);
+        color: #0b0f19;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .error {
+        margin-top: 12px;
+        color: #ffadad;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Admin Login</h1>
+      <p>Use the credentials from NEKO_EXPLORER_ADMIN_USER / PASS.</p>
+      <label for="username">Username</label>
+      <input id="username" autocomplete="username" />
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" />
+      <button id="login-btn">Sign In</button>
+      <div id="error" class="error"></div>
+    </div>
+
+    <script>
+      const loginBtn = document.getElementById("login-btn");
+      const errorEl = document.getElementById("error");
+
+      loginBtn.addEventListener("click", async () => {
+        errorEl.textContent = "";
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+        if (!username || !password) {
+          errorEl.textContent = "Username and password required.";
+          return;
+        }
+
+        const res = await fetch("/api/admin/login", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (!data.ok) {
+          errorEl.textContent = data.error || "Login failed.";
+          return;
+        }
+
+        window.location.href = "/admin";
+      });
+    </script>
+  </body>
+</html>

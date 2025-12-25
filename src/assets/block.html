@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Neko Blockbook - Block</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Sora", "ui-sans-serif", "system-ui"]
+            },
+            colors: {
+              ink: "#e6edf3",
+              haze: "#0b0f14",
+              pine: "#111a26",
+              line: "#233246",
+              mint: "#6ef2c7",
+              amber: "#f5c07a",
+              glow: "#7dc4ff"
+            }
+          }
+        }
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-haze text-ink bg-[radial-gradient(ellipse_at_top,_#1b2736_0%,_#0b0f14_55%,_#090d12_100%)]">
+    <div class="border-b border-line/60 bg-pine/80 backdrop-blur">
+      <div class="mx-auto flex w-full max-w-6xl items-center gap-4 px-6 py-4">
+        <div class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-full bg-gradient-to-br from-mint via-glow to-amber shadow-[0_0_24px_rgba(124,196,255,0.35)]"></div>
+          <div>
+            <p class="text-sm uppercase tracking-[0.3em] text-ink/60">Neko</p>
+            <h1 class="text-lg font-semibold">Blockbookr</h1>
+          </div>
+        </div>
+        <nav class="ml-6 hidden items-center gap-6 text-sm font-semibold text-ink/70 md:flex">
+          <a href="/explorer" class="transition hover:text-mint">Status</a>
+          <a href="/block/0" class="transition hover:text-mint">Blocks</a>
+        </nav>
+        <div class="ml-auto flex flex-1 items-center gap-3">
+          <div class="flex w-full items-center rounded-full border border-line/60 bg-pine/70 px-3 py-2 shadow-[0_16px_40px_-30px_rgba(0,0,0,0.9)]">
+            <input
+              id="search-input"
+              class="w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink/40"
+              placeholder="Search block, transaction, address"
+            />
+            <button id="search-btn" class="rounded-full bg-mint px-3 py-1 text-xs font-semibold text-haze transition hover:bg-mint/90">
+              Go
+            </button>
+          </div>
+          <select id="chain-select" class="rounded-full border border-line/60 bg-pine/70 px-3 py-2 text-sm text-ink">
+            <option>Loading</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <main class="mx-auto w-full max-w-6xl px-6 py-10">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-3xl font-semibold">Block</h2>
+          <p class="mt-1 text-sm text-ink/60" id="block-height">-</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="prev-block" class="rounded-full border border-line/60 bg-pine/90 px-4 py-2 text-sm font-semibold transition hover:border-mint/60">
+            Previous Block
+          </button>
+          <button id="next-block" class="rounded-full border border-line/60 bg-pine/90 px-4 py-2 text-sm font-semibold transition hover:border-mint/60">
+            Next Block
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-6 rounded-3xl border border-line/60 bg-pine/85 p-6 shadow-[0_20px_60px_-45px_rgba(0,0,0,0.9)]">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <p class="text-xs uppercase tracking-[0.3em] text-ink/50">Block Hash</p>
+          <p id="block-hash" class="break-all text-sm font-semibold"></p>
+        </div>
+      </div>
+
+      <div class="mt-6 grid gap-6 lg:grid-cols-2">
+        <section class="rounded-3xl border border-line/60 bg-pine/85 p-6 shadow-[0_20px_60px_-45px_rgba(0,0,0,0.9)]">
+          <h3 class="text-lg font-semibold">Summary</h3>
+          <dl class="mt-4 grid gap-3 text-sm">
+            <div class="flex justify-between border-b border-line/40 pb-2">
+              <dt class="text-ink/60">Transactions</dt>
+              <dd id="block-txs" class="font-semibold">-</dd>
+            </div>
+            <div class="flex justify-between border-b border-line/40 pb-2">
+              <dt class="text-ink/60">Height</dt>
+              <dd id="block-height-value" class="font-semibold">-</dd>
+            </div>
+            <div class="flex justify-between border-b border-line/40 pb-2">
+              <dt class="text-ink/60">Confirmations</dt>
+              <dd id="block-confirmations" class="font-semibold">-</dd>
+            </div>
+            <div class="flex justify-between border-b border-line/40 pb-2">
+              <dt class="text-ink/60">Timestamp</dt>
+              <dd id="block-time" class="font-semibold">-</dd>
+            </div>
+            <div class="flex justify-between border-b border-line/40 pb-2">
+              <dt class="text-ink/60">Size (bytes)</dt>
+              <dd id="block-size" class="font-semibold">-</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="rounded-3xl border border-line/60 bg-pine/85 p-6 shadow-[0_20px_60px_-45px_rgba(0,0,0,0.9)]">
+          <h3 class="text-lg font-semibold">Details</h3>
+          <dl class="mt-4 grid gap-3 text-sm">
+            <div class="flex justify-between border-b border-line/40 pb-2">
+              <dt class="text-ink/60">Version</dt>
+              <dd id="block-version" class="font-semibold">-</dd>
+            </div>
+            <div class="flex justify-between border-b border-line/40 pb-2">
+              <dt class="text-ink/60">Merkle Root</dt>
+              <dd id="block-merkle" class="break-all text-right font-semibold">-</dd>
+            </div>
+            <div class="flex justify-between border-b border-line/40 pb-2">
+              <dt class="text-ink/60">Nonce</dt>
+              <dd id="block-nonce" class="font-semibold">-</dd>
+            </div>
+            <div class="flex justify-between border-b border-line/40 pb-2">
+              <dt class="text-ink/60">Bits</dt>
+              <dd id="block-bits" class="font-semibold">-</dd>
+            </div>
+            <div class="flex justify-between border-b border-line/40 pb-2">
+              <dt class="text-ink/60">Difficulty</dt>
+              <dd id="block-difficulty" class="font-semibold">-</dd>
+            </div>
+          </dl>
+        </section>
+      </div>
+
+      <section class="mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <h3 class="text-2xl font-semibold">Transactions</h3>
+          <div class="flex items-center gap-2 text-sm">
+            <button id="prev-page" class="rounded-full border border-line/60 bg-pine/90 px-3 py-2 transition hover:border-mint/60">Previous</button>
+            <span id="page-info" class="text-ink/60">Page 1</span>
+            <button id="next-page" class="rounded-full border border-line/60 bg-pine/90 px-3 py-2 transition hover:border-mint/60">Next</button>
+          </div>
+        </div>
+
+        <div id="tx-list" class="mt-6 grid gap-4"></div>
+      </section>
+    </main>
+
+    <script>
+      const chainSelect = document.getElementById("chain-select");
+      const searchInput = document.getElementById("search-input");
+      const searchBtn = document.getElementById("search-btn");
+      const txList = document.getElementById("tx-list");
+      const pageInfo = document.getElementById("page-info");
+      const prevPage = document.getElementById("prev-page");
+      const nextPage = document.getElementById("next-page");
+      const prevBlock = document.getElementById("prev-block");
+      const nextBlock = document.getElementById("next-block");
+
+      const blockId = window.location.pathname.split("/").pop();
+      const params = new URLSearchParams(window.location.search);
+      let selectedChain = params.get("chain") || localStorage.getItem("nekoChain") || "";
+      let selectedSymbol = "";
+      const symbolByChain = new Map();
+      let currentPage = 1;
+      const itemsOnPage = 10;
+
+      function formatNumber(value) {
+        if (value === null || value === undefined) return "-";
+        return Number(value).toLocaleString();
+      }
+
+      function timeAgo(unixSeconds) {
+        if (!unixSeconds) return "-";
+        const diff = Date.now() - unixSeconds * 1000;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(minutes / 60);
+        if (hours > 0) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+        return `${minutes} min${minutes === 1 ? "" : "s"} ago`;
+      }
+
+      async function loadChains() {
+        const res = await fetch("/api/v1/chains");
+        const data = await res.json();
+        if (!data.ok) return;
+        symbolByChain.clear();
+        data.chains.forEach((chain) => symbolByChain.set(chain.id, chain.symbol));
+        chainSelect.innerHTML = data.chains
+          .map((chain) => `<option value="${chain.id}">${chain.name}</option>`)
+          .join("");
+        if (selectedChain) {
+          chainSelect.value = selectedChain;
+        } else if (data.chains[0]) {
+          chainSelect.value = data.chains[0].id;
+          selectedChain = data.chains[0].id;
+        }
+        selectedSymbol = symbolByChain.get(chainSelect.value) || "";
+      }
+
+      async function loadBlock() {
+        const chain = chainSelect.value;
+        if (!chain) return;
+        const res = await fetch(
+          `/api/v1/${encodeURIComponent(chain)}/block/${encodeURIComponent(blockId)}?page=${currentPage}&itemsOnPage=${itemsOnPage}`
+        );
+        const data = await res.json();
+        if (data.ok === false) {
+          return;
+        }
+        const symbol = selectedSymbol || symbolByChain.get(chain) || "COIN";
+
+        document.getElementById("block-height").textContent = data.block.height ?? "-";
+        document.getElementById("block-hash").textContent = data.block.hash ?? "-";
+        document.getElementById("block-txs").textContent = formatNumber(data.block.txCount);
+        document.getElementById("block-height-value").textContent = formatNumber(data.block.height);
+        document.getElementById("block-confirmations").textContent = formatNumber(data.block.confirmations);
+        document.getElementById("block-time").textContent = timeAgo(data.block.time);
+        document.getElementById("block-size").textContent = formatNumber(data.block.size);
+        document.getElementById("block-version").textContent = data.block.version ?? "-";
+        document.getElementById("block-merkle").textContent = data.block.merkleroot ?? "-";
+        document.getElementById("block-nonce").textContent = data.block.nonce ?? "-";
+        document.getElementById("block-bits").textContent = data.block.bits ?? "-";
+        document.getElementById("block-difficulty").textContent = data.block.difficulty ?? "-";
+
+        pageInfo.textContent = `Page ${data.page} / ${data.totalPages}`;
+        prevPage.disabled = data.page <= 1;
+        nextPage.disabled = data.page >= data.totalPages;
+
+        prevBlock.disabled = !data.block.previousblockhash;
+        nextBlock.disabled = !data.block.nextblockhash;
+
+        txList.innerHTML = data.txs
+          .map((tx) => {
+            const outputs = tx.vout
+              .slice(0, 4)
+              .map((out) => {
+                const addr = out.scriptPubKey.addresses?.[0] ?? "Unknown";
+                return `
+                  <div class="flex items-center justify-between text-xs text-ink/70">
+                    <span class="truncate">${addr}</span>
+                    <span>${out.value} ${symbol}</span>
+                  </div>
+                `;
+              })
+              .join("");
+            return `
+              <article class="rounded-3xl border border-line/60 bg-pine/85 p-5 shadow-[0_20px_60px_-45px_rgba(0,0,0,0.9)]">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <a class="break-all text-sm font-semibold text-mint" href="/tx/${tx.txid}?chain=${encodeURIComponent(chain)}">${tx.txid}</a>
+                  <span class="text-xs text-ink/50">mined ${timeAgo(tx.time)}</span>
+                </div>
+                <div class="mt-4 grid gap-4 md:grid-cols-2">
+                  <div class="rounded-2xl border border-line/40 bg-haze/40 p-4 text-xs text-ink/60">
+                    ${tx.isCoinbase ? "No Inputs (Newly Generated Coins)" : `${tx.vinCount} inputs`}
+                  </div>
+                  <div class="rounded-2xl border border-line/40 bg-pine/70 p-4">
+                    ${outputs || "<span class='text-xs text-ink/50'>No outputs</span>"}
+                  </div>
+                </div>
+                <div class="mt-4 flex items-center justify-between text-xs text-ink/60">
+                  <span>${tx.confirmations} confirmations</span>
+                  <span>${tx.valueOut} ${symbol}</span>
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      prevPage.addEventListener("click", () => {
+        currentPage = Math.max(1, currentPage - 1);
+        loadBlock();
+      });
+
+      nextPage.addEventListener("click", () => {
+        currentPage += 1;
+        loadBlock();
+      });
+
+      prevBlock.addEventListener("click", () => {
+        const height = Number(blockId);
+        if (!Number.isNaN(height) && height > 0) {
+          window.location.href = `/block/${height - 1}?chain=${encodeURIComponent(chainSelect.value)}`;
+        }
+      });
+
+      nextBlock.addEventListener("click", () => {
+        const height = Number(blockId);
+        if (!Number.isNaN(height)) {
+          window.location.href = `/block/${height + 1}?chain=${encodeURIComponent(chainSelect.value)}`;
+        }
+      });
+
+      searchBtn.addEventListener("click", () => {
+        const query = searchInput.value.trim();
+        if (!query) return;
+        if (/^\d+$/.test(query)) {
+          window.location.href = `/block/${query}?chain=${encodeURIComponent(chainSelect.value)}`;
+          return;
+        }
+        if (/^[0-9a-fA-F]{64}$/.test(query)) {
+          window.location.href = `/tx/${query}?chain=${encodeURIComponent(chainSelect.value)}`;
+          return;
+        }
+        window.location.href = `/address/${query}?chain=${encodeURIComponent(chainSelect.value)}`;
+      });
+
+      (async () => {
+        await loadChains();
+        await loadBlock();
+      })();
+
+      chainSelect.addEventListener("change", () => {
+        selectedChain = chainSelect.value;
+        selectedSymbol = symbolByChain.get(selectedChain) || "";
+        localStorage.setItem("nekoChain", selectedChain);
+        const url = new URL(window.location.href);
+        url.searchParams.set("chain", selectedChain);
+        window.history.replaceState({}, "", url.toString());
+        loadBlock();
+      });
+    </script>
+  </body>
+</html>

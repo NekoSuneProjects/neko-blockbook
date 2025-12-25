@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Neko Blockbook - Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0f19;
+        --card: rgba(17, 23, 39, 0.85);
+        --text: #f8f4e9;
+        --muted: rgba(248, 244, 233, 0.6);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        color: var(--text);
+        background: radial-gradient(circle at 20% 20%, #233042 0%, #0b0f19 60%);
+        min-height: 100vh;
+      }
+      header {
+        padding: 28px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      h1 {
+        margin: 0;
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 24px 48px;
+      }
+      .tabs {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .tab-btn {
+        padding: 10px 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(7, 10, 18, 0.6);
+        color: var(--text);
+        cursor: pointer;
+      }
+      .tab-btn.active {
+        background: linear-gradient(135deg, #8ee3c8, #4b8fbb);
+        color: #0b0f19;
+        border: none;
+      }
+      .panel {
+        background: var(--card);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 20px;
+        margin-bottom: 18px;
+      }
+      label {
+        display: block;
+        margin: 12px 0 6px;
+        color: var(--muted);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      input, select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(7, 10, 18, 0.7);
+        color: var(--text);
+      }
+      button {
+        padding: 10px 16px;
+        border-radius: 12px;
+        border: none;
+        background: linear-gradient(135deg, #8ee3c8, #4b8fbb);
+        color: #0b0f19;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+      th, td {
+        padding: 10px 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        text-align: left;
+      }
+      .actions button {
+        margin-right: 8px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .modal.active {
+        display: flex;
+      }
+      .modal-card {
+        background: var(--card);
+        padding: 24px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        width: min(420px, 90vw);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="container">
+      <h1>Neko Blockbook - Admin</h1>
+      <button id="logout-btn">Logout</button>
+    </header>
+
+    <main class="container">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="rpc">RPC Endpoints</button>
+        <button class="tab-btn" data-tab="nodes">Nodes</button>
+      </div>
+
+      <section id="tab-rpc">
+        <div class="panel">
+          <h2>Add RPC Endpoint</h2>
+          <div class="grid">
+            <label>Chain</label>
+            <select id="rpc-chain"></select>
+            <label>Name</label>
+            <input id="rpc-name" placeholder="Primary RPC" />
+            <label>URL</label>
+            <input id="rpc-url" placeholder="http://127.0.0.1:9999/" />
+            <label>Username</label>
+            <input id="rpc-user" />
+            <label>Password</label>
+            <input id="rpc-pass" type="password" />
+            <label>Priority (lower = preferred)</label>
+            <input id="rpc-priority" type="number" value="0" />
+            <button id="rpc-add">Add Endpoint</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Endpoints</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Chain</th>
+                <th>Name</th>
+                <th>URL</th>
+                <th>Priority</th>
+                <th>Enabled</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="rpc-table"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tab-nodes" style="display: none;">
+        <div class="panel">
+          <h2>Create Node</h2>
+          <label>Node ID</label>
+          <input id="node-id" placeholder="zenzo-main" />
+          <label>Chain</label>
+          <select id="node-chain"></select>
+          <label>Snapshot URL (optional)</label>
+          <input id="node-snapshot" />
+          <label>Core Version (optional)</label>
+          <input id="node-version" />
+          <label>P2P Port (optional)</label>
+          <input id="node-p2p" type="number" />
+          <label>RPC Port (optional)</label>
+          <input id="node-rpc" type="number" />
+          <button id="node-create">Create Node</button>
+        </div>
+
+        <div class="panel">
+          <h2>Nodes</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Chain</th>
+                <th>RPC Port</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="node-table"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <div id="password-modal" class="modal">
+      <div class="modal-card">
+        <h2>Change Admin Password</h2>
+        <p class="muted">First login requires a new password.</p>
+        <label>Current Password</label>
+        <input id="current-pass" type="password" />
+        <label>New Password</label>
+        <input id="new-pass" type="password" />
+        <button id="save-pass">Update Password</button>
+      </div>
+    </div>
+
+    <script>
+      const logoutBtn = document.getElementById("logout-btn");
+      const rpcTable = document.getElementById("rpc-table");
+      const rpcAddBtn = document.getElementById("rpc-add");
+      const nodeTable = document.getElementById("node-table");
+      const nodeCreateBtn = document.getElementById("node-create");
+      const passwordModal = document.getElementById("password-modal");
+      const savePassBtn = document.getElementById("save-pass");
+
+      const tabButtons = document.querySelectorAll(".tab-btn");
+      tabButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          tabButtons.forEach((other) => other.classList.remove("active"));
+          btn.classList.add("active");
+          const tab = btn.dataset.tab;
+          document.getElementById("tab-rpc").style.display = tab === "rpc" ? "block" : "none";
+          document.getElementById("tab-nodes").style.display = tab === "nodes" ? "block" : "none";
+        });
+      });
+
+      async function requireAuth() {
+        const res = await fetch("/api/admin/me");
+        if (res.status === 401) {
+          window.location.href = "/admin/login";
+          return;
+        }
+        const data = await res.json();
+        if (data.mustChangePassword) {
+          passwordModal.classList.add("active");
+        }
+      }
+
+      async function loadChains() {
+        const res = await fetch("/public/chains");
+        const data = await res.json();
+        if (!data.ok) return;
+        const chainOptions = data.chains
+          .map((chain) => `<option value="${chain.id}">${chain.name}</option>`)
+          .join("");
+        document.getElementById("rpc-chain").innerHTML = chainOptions;
+        document.getElementById("node-chain").innerHTML = chainOptions;
+      }
+
+      async function loadEndpoints() {
+        const res = await fetch("/api/admin/rpc-endpoints");
+        const data = await res.json();
+        if (!data.ok) return;
+        rpcTable.innerHTML = data.endpoints
+          .map(
+            (endpoint) => `
+              <tr>
+                <td>${endpoint.id}</td>
+                <td>${endpoint.chain}</td>
+                <td>${endpoint.name}</td>
+                <td>${endpoint.url}</td>
+                <td>${endpoint.priority}</td>
+                <td>${endpoint.enabled ? "yes" : "no"}</td>
+                <td class="actions">
+                  <button data-disable="${endpoint.id}" data-enabled="${endpoint.enabled}">
+                    ${endpoint.enabled ? "Disable" : "Enable"}
+                  </button>
+                  <button data-delete="${endpoint.id}">Delete</button>
+                </td>
+              </tr>
+            `
+          )
+          .join("");
+      }
+
+      async function loadNodes() {
+        const res = await fetch("/api/admin/nodes");
+        const data = await res.json();
+        if (!data.ok) return;
+        nodeTable.innerHTML = data.nodes
+          .map(
+            (node) => `
+              <tr>
+                <td>${node.id}</td>
+                <td>${node.chain}</td>
+                <td>${node.rpcPort}</td>
+                <td id="status-${node.id}">unknown</td>
+                <td class="actions">
+                  <button data-start="${node.id}">Start</button>
+                  <button data-stop="${node.id}">Stop</button>
+                  <button data-restart="${node.id}">Restart</button>
+                  <button data-delete="${node.id}">Delete</button>
+                </td>
+              </tr>
+            `
+          )
+          .join("");
+
+        for (const node of data.nodes) {
+          const statusRes = await fetch(`/api/admin/nodes/${node.id}/status`);
+          const status = await statusRes.json();
+          const cell = document.getElementById(`status-${node.id}`);
+          if (cell) {
+            cell.textContent = status.online ? "online" : "offline";
+          }
+        }
+      }
+
+      rpcAddBtn.addEventListener("click", async () => {
+        const payload = {
+          chain: document.getElementById("rpc-chain").value,
+          name: document.getElementById("rpc-name").value,
+          url: document.getElementById("rpc-url").value,
+          username: document.getElementById("rpc-user").value,
+          password: document.getElementById("rpc-pass").value,
+          priority: Number(document.getElementById("rpc-priority").value || 0)
+        };
+        await fetch("/api/admin/rpc-endpoints", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        await loadEndpoints();
+      });
+
+      rpcTable.addEventListener("click", async (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        const toggleId = target.dataset.disable;
+        const deleteId = target.dataset.delete;
+
+        if (toggleId) {
+          const enabled = target.dataset.enabled === "true";
+          await fetch(`/api/admin/rpc-endpoints/${toggleId}`, {
+            method: "PATCH",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ enabled: !enabled })
+          });
+          await loadEndpoints();
+        }
+
+        if (deleteId) {
+          await fetch(`/api/admin/rpc-endpoints/${deleteId}`, { method: "DELETE" });
+          await loadEndpoints();
+        }
+      });
+
+      nodeCreateBtn.addEventListener("click", async () => {
+        const payload = {
+          id: document.getElementById("node-id").value,
+          chain: document.getElementById("node-chain").value,
+          snapshotUrl: document.getElementById("node-snapshot").value,
+          coreVersion: document.getElementById("node-version").value,
+          p2pPort: Number(document.getElementById("node-p2p").value || 0) || undefined,
+          rpcPort: Number(document.getElementById("node-rpc").value || 0) || undefined
+        };
+        await fetch("/api/admin/nodes", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        await loadNodes();
+      });
+
+      nodeTable.addEventListener("click", async (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        const startId = target.dataset.start;
+        const stopId = target.dataset.stop;
+        const restartId = target.dataset.restart;
+        const deleteId = target.dataset.delete;
+
+        if (startId) await fetch(`/api/admin/nodes/${startId}/start`, { method: "POST" });
+        if (stopId) await fetch(`/api/admin/nodes/${stopId}/stop`, { method: "POST" });
+        if (restartId) await fetch(`/api/admin/nodes/${restartId}/restart`, { method: "POST" });
+        if (deleteId) await fetch(`/api/admin/nodes/${deleteId}`, { method: "DELETE" });
+
+        await loadNodes();
+      });
+
+      savePassBtn.addEventListener("click", async () => {
+        const currentPassword = document.getElementById("current-pass").value;
+        const newPassword = document.getElementById("new-pass").value;
+        const res = await fetch("/api/admin/password", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ currentPassword, newPassword })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          passwordModal.classList.remove("active");
+        }
+      });
+
+      logoutBtn.addEventListener("click", async () => {
+        await fetch("/api/admin/logout", { method: "POST" });
+        window.location.href = "/admin/login";
+      });
+
+      requireAuth();
+      loadChains();
+      loadEndpoints();
+      loadNodes();
+    </script>
+  </body>
+</html>
